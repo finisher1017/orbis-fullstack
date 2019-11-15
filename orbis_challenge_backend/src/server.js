@@ -65,7 +65,7 @@ app.post('/api/articles/:name/add-comment', (req, res) => {
     }, res);
 });
 
-
+// add new twits matching symbol if none exist
 app.post('/api/stocktwits/:symbol/get-twits', async (req, res) => {
     const { symbol } = req.body;
     const symbolName = req.params.symbol;
@@ -88,7 +88,7 @@ app.post('/api/stocktwits/:symbol/get-twits', async (req, res) => {
                     }
                     twitsList.push(twitData);
                 })
-                await db.collection('twits').update(
+                await db.collection('twits').updateOne(
                     {"symbol": symbolName},
                     { $push: { twits: { $each: twitsList } } }
                 )
@@ -102,6 +102,27 @@ app.post('/api/stocktwits/:symbol/get-twits', async (req, res) => {
     } catch (error) {
         res.send(error.message);
     }
+});
+
+
+// delete existing twits
+app.post('/api/stocktwits/:symbol/delete', (req, res) => {
+    const symbolName = req.params.symbol;
+
+    try {
+        withDB(async (db) => {
+            const checkTwits = await db.collection('twits').findOne({"symbol": symbolName});
+            if (checkTwits !== null) {
+                await db.collection('twits').remove({"symbol": symbolName});
+                res.send(`${symbolName} twits deleted.`);
+            } else {
+                res.send("No twits found.");
+            }
+        }, res);
+    } catch (error) {
+        console.log("Something went wrong.");
+    }
+
 });
 
 // app.get('*', (req, res) => {

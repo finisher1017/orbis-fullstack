@@ -70,12 +70,55 @@ app.get('/api/stocktwits/:symbol/get-twits', async (req, res) => {
     const { symbol } = req.body;
     const symbolName = req.params.symbol;
     const response = await axios.get(`https://api.stocktwits.com/api/2/streams/symbol/${symbolName}.json`);
-    const twitData = response.data.messages[0];
-    res.send(twitData);
+    const twits = response.data.messages;
+    
+    // twits.forEach((twit) => {
+    //     const twitData = {
+    //         "id": twit.id,
+    //         "stocktwits_timestamp": twit.created_at,
+    //         "username": twit.user.username,
+    //         "body": twit.body
 
-    // withDB(async (db) => {
-    //     const twits = await db.collection('twits').insertOne({ symbolName: twitData });
-    // }, res);
+    //     }
+    //     console.log(`id: ${twitData.id}`);
+    //     console.log(`stocktwits_timestamp: ${twitData.stocktwits_timestamp}`); 
+    //     console.log(`username: ${twitData.username}`);
+    //     console.log(`body: ${twitData.body}`);
+    //     console.log('###########################################')
+    // })
+    // res.send(twitData);
+
+    withDB(async (db) => {
+        // const twits = await db.collection('twits').insertOne({ symbolName: twitData });
+        
+        var loopCount = 1;
+        twits.forEach(async (twit) => {
+            // var symbolFound = await db.collection('twits').findOne({ symbol: symbolName });
+            console.log("loop count: " + loopCount);
+            let twitData = {
+                "id": twit.id,
+                "stocktwits_timestamp": twit.created_at,
+                "username": twit.user.username,
+                "body": twit.body
+            
+            }
+            console.log(twitData);
+            await db.collection('twits').update(
+                {"symbol": "AAPL"},
+                { $push: { twits: twitData }}
+            )
+            // await db.collection('twits').updateOne({ symbol: symbolName },
+            //     {
+            //         '$set': {
+            //             twits: symbolFound.twits.concat(twitData)
+            //         }
+            //     });
+            loopCount = loopCount += 1;
+        });
+        
+        // const updatedSymbolInfo = await db.collection('twits').findOne({ symbol: symbolName });
+        // console.log(updatedSymbolInfo);
+    }, res);
 
 });
 

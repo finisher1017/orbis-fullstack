@@ -66,7 +66,7 @@ app.post('/api/articles/:name/add-comment', (req, res) => {
 });
 
 
-app.get('/api/stocktwits/:symbol/get-twits', async (req, res) => {
+app.post('/api/stocktwits/:symbol/get-twits', async (req, res) => {
     const { symbol } = req.body;
     const symbolName = req.params.symbol;
 
@@ -74,13 +74,10 @@ app.get('/api/stocktwits/:symbol/get-twits', async (req, res) => {
         const response = await axios.get(`https://api.stocktwits.com/api/2/streams/symbol/${symbolName}.json`);
         const twits = response.data.messages;
         withDB(async (db) => {
-            // const twits = await db.collection('twits').insertOne({ symbolName: twitData });
             const checkTwits = await db.collection('twits').findOne({"symbol": symbolName});
-            
-            
-            // Check if list of twits matching symbol exist in the database
             if (checkTwits === null) {
                 await db.collection('twits').insertOne({"symbol": symbolName, "twits": []});
+                let twitsList = [];
                 twits.forEach(async (twit) => {
                     const twitData = {
                         "id": twit.id,
@@ -89,92 +86,22 @@ app.get('/api/stocktwits/:symbol/get-twits', async (req, res) => {
                         "body": twit.body
 
                     }
-                    // console.log(`id: ${twitData.id}`);
-                    // console.log(`stocktwits_timestamp: ${twitData.stocktwits_timestamp}`); 
-                    // console.log(`username: ${twitData.username}`);
-                    // console.log(`body: ${twitData.body}`);
-                    // console.log('###########################################')
-                    const newCollection = await db.collection('twits').update(
-                        {"symbol": symbolName},
-                        { $push: { twits: twitData }}
-                    )
+                    twitsList.push(twitData);
                 })
-                const newCollection = await db.collection('twits').findOne({"symbol": symbolName});
-                res.send(newCollection);
-                // const foundCollection = await db.collection('twits').findOne({"symbol": symbolName});
-                // res.send(foundCollection);
-                
-                // const newTwits = db.collection('twits').insert({"symbol": symbolName, "twits": []});
-                // res.send(`Created collection for ${symbolName}`);
+                await db.collection('twits').update(
+                    {"symbol": symbolName},
+                    { $push: { twits: { $each: twitsList } } }
+                )
+                const newTwits = await db.collection('twits').findOne({"symbol": symbolName});
+                res.send(newTwits);
             } else {
-                res.send("List of twits already exists.");
+                const existingTwits = await db.collection('twits').findOne({"symbol": symbolName});
+                res.send(`$${symbolName} list of twits already exists with ${existingTwits.twits.length} twits.`);
             }
         }, res);
-        // res.send(response.data.messages);
     } catch (error) {
-        console.log("Found nothing or something else went wrong.");
         res.send(error.message);
     }
-    
-
-
-
-
-
-    // const response = await axios.get(`https://api.stocktwits.com/api/2/streams/symbol/${symbolName}.json`);
-
-    // const twits = response.data.messages;
-    
-    // twits.forEach((twit) => {
-    //     const twitData = {
-    //         "id": twit.id,
-    //         "stocktwits_timestamp": twit.created_at,
-    //         "username": twit.user.username,
-    //         "body": twit.body
-
-    //     }
-    //     console.log(`id: ${twitData.id}`);
-    //     console.log(`stocktwits_timestamp: ${twitData.stocktwits_timestamp}`); 
-    //     console.log(`username: ${twitData.username}`);
-    //     console.log(`body: ${twitData.body}`);
-    //     console.log('###########################################')
-    // })
-    // res.send(twitData);
-
-    // withDB(async (db) => {
-        // const twits = await db.collection('twits').insertOne({ symbolName: twitData });
-        // const checkTwits = await db.collection('twits').findOne({"symbol": "AAPL"});
-        
-        
-        // Check if list of twits matching symbol exist in the database
-        // if (checkTwits === null) {
-        //     console.log("No records found");
-        // } else {
-        //     console.log("There's something there.");
-        // }
-        
-        // var loopCount = 1;
-        // twits.forEach(async (twit) => {
-        //     // var symbolFound = await db.collection('twits').findOne({ symbol: symbolName });
-        //     console.log("loop count: " + loopCount);
-        //     let twitData = {
-        //         "id": twit.id,
-        //         "stocktwits_timestamp": twit.created_at,
-        //         "username": twit.user.username,
-        //         "body": twit.body
-            
-        //     }
-        //     console.log(twitData);
-        //     await db.collection('twits').update(
-        //         {"symbol": "AAPL"},
-        //         { $push: { twits: twitData }}
-        //     )
-        // });
-        
-        // const updatedSymbolInfo = await db.collection('twits').findOne({ symbol: symbolName });
-        // console.log(updatedSymbolInfo);
-    // }, res);
-
 });
 
 // app.get('*', (req, res) => {

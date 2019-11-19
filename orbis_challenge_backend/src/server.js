@@ -140,7 +140,7 @@ app.get('/api/stocktwits/:symbol/get-twits', (req, res) => {
     withDB(async (db) => {
         try {
             const existingTwits = await db.collection('twits').findOne({"symbol": symbol});
-            res.send(existingTwits);
+            res.status(200).json(existingTwits);
         } catch (error) {
             res.send(error);
         }

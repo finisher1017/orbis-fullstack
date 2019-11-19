@@ -2,6 +2,9 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import { MongoClient } from 'mongodb';
 import path from 'path';
+import { builtinModules } from 'module';
+const api_methods = require('./api-methods');
+const config = require('./config');
 const axios = require('axios');
 
 
@@ -12,7 +15,9 @@ app.use(bodyParser.json());
 
 const withDB = async (operations, res) => {
     try {
-        const client = await MongoClient.connect('mongodb://localhost:27017', { useNewUrlParser: true, useUnifiedTopology: true });
+        // const client = await MongoClient.connect('mongodb://localhost:27017', { useNewUrlParser: true, useUnifiedTopology: true });
+        // const client = await MongoClient.connect('mongodb+srv://magajon:L9NGYWGuNIJB7xfm@cluster0-2onta.mongodb.net/test?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true });
+        const client = await MongoClient.connect(config.dbConnect, { useNewUrlParser: true, useUnifiedTopology: true });
         const db = client.db('orbis-fullstack');
 
         await operations(db);
@@ -20,6 +25,30 @@ const withDB = async (operations, res) => {
         client.close();
     } catch (error) {
         res.status(500).json({ message: 'Error connecting to db', error });
+    }
+}
+
+const dbWithoutres = async (operations) => {
+    try {
+        // const client = await MongoClient.connect('mongodb://localhost:27017', { useNewUrlParser: true, useUnifiedTopology: true });
+        const client = await MongoClient.connect(config.dbConnect, { useNewUrlParser: true, useUnifiedTopology: true });
+        const db = client.db('orbis-fullstack');
+
+        await operations(db);
+
+        client.close();
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+const getNewTwits = async (symbol) => {
+    try {
+        const newTwits = await axios.get(`https://api.stocktwits.com/api/2/streams/symbol/${symbol}.json`);
+        const results = newTwits.data.messages;
+        return results;
+    } catch (error) {
+        return error;
     }
 }
 
@@ -66,7 +95,7 @@ app.post('/api/articles/:name/add-comment', (req, res) => {
 });
 
 // add new twits matching symbol if none exist
-app.post('/api/stocktwits/:symbol/get-twits', async (req, res) => {
+app.post('/api/stocktwits/:symbol/new-twits', async (req, res) => {
     const { symbol } = req.body;
     const symbolName = req.params.symbol;
 
@@ -105,6 +134,20 @@ app.post('/api/stocktwits/:symbol/get-twits', async (req, res) => {
 });
 
 
+// retrieve existing twits from database
+app.get('/api/stocktwits/:symbol/get-twits', (req, res) => {
+    const symbol = req.params.symbol;
+    withDB(async (db) => {
+        try {
+            const existingTwits = await db.collection('twits').findOne({"symbol": symbol});
+            res.send(existingTwits);
+        } catch (error) {
+            res.send(error);
+        }
+    }, res);
+});
+
+
 // delete existing twits
 app.post('/api/stocktwits/:symbol/delete', (req, res) => {
     const symbolName = req.params.symbol;
@@ -122,8 +165,77 @@ app.post('/api/stocktwits/:symbol/delete', (req, res) => {
     } catch (error) {
         console.log("Something went wrong.");
     }
-
 });
+
+// var timerID = setInterval(async () => {
+//     const symbol = "AAPL";
+
+//     const newTwits = await axios.get(`https://api.stocktwits.com/api/2/streams/symbol/${symbol}.json`);
+//     const newResponse = newTwits.data.messages;
+//     const newTwitsIds = newResponse.map(twit => twit = twit.id);
+
+//     try {
+//         dbWithoutres(async (db) => {
+//             const results = await db.collection('twits').findOne({"symbol": symbol});
+//             const twitsList = results.twits.map(twit => twit = twit.id);
+//             const twitsToAdd = [];
+//             for (var i = 0; i <= newTwitsIds.length; i++) {
+//                 console.log(`Checking ${newTwitsIds[i]}`);
+//                 if (twitsList.includes(newTwitsIds[i])) {
+//                     console.log(`${newTwitsIds[i]} is in the database`);
+//                     break;
+//                 } else {
+//                     console.log(`Adding ${newTwitsIds[i]} to the database`);
+//                     newResponse.forEach((t) => {
+//                         if (t.id === newTwitsIds[i]) {
+//                             twitsToAdd.push(api_methods.convertOneTwit(t));
+//                         }
+//                     });
+//                 }
+//                 console.log("##################################");
+//             };
+//             console.log(`${twitsList.length} found in database.`);
+//             console.log(`${twitsToAdd.length} twits to add.`);
+//             await db.collection('twits').updateOne(
+//                 {"symbol": symbol},
+//                 { $push: { twits: { $each: twitsToAdd } } }
+//             )
+//             const updatedTwits = await db.collection('twits').findOne({"symbol": symbol});
+//             const updatedTwitsList = updatedTwits.twits.map(twit => twit = twit.id);
+//             var sortedUpdatedTwitsList = updatedTwitsList.sort();
+//             console.log(`${sortedUpdatedTwitsList.length} twits now in database`);
+//             const newTwitsToAddList = [];
+//             if (sortedUpdatedTwitsList.length > 40) {
+//                 console.log((sortedUpdatedTwitsList.length - 40) + " to delete");
+//                 const remainingTwits = sortedUpdatedTwitsList.slice(sortedUpdatedTwitsList.length - 40);
+//                 console.log(updatedTwits.twits.length);
+//                 updatedTwits.twits.forEach((t) => {
+//                     if (remainingTwits.includes(t.id)) {
+//                         newTwitsToAddList.push(t);
+//                     }
+//                 })
+                
+//                 console.log(newTwitsToAddList.length + " in new list");
+//                 await db.collection('twits').updateOne(
+//                     {"symbol": symbol},
+//                     { $set: {"twits": []}}
+//                 )
+//                 await db.collection('twits').updateOne(
+//                     {"symbol": symbol},
+//                     { $push: { twits: { $each: newTwitsToAddList } } }
+//                 )
+//             }
+            
+            
+            
+//         });
+//     } catch (error) {
+//         console.log("Error from request")
+//         console.log(error);
+//     }
+// }, 10000);
+
+
 
 // app.get('*', (req, res) => {
 //     res.sendFile(path.join(__dirname + '/build/index.html'));

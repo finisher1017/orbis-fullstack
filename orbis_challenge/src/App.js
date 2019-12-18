@@ -9,6 +9,7 @@ import AboutPage from './pages/AboutPage';
 import ArticlesListPage from './pages/ArticlesListPage';
 import ArticlePage from './pages/ArticlePage';
 import MainPage from './pages/MainPage';
+import ExamplePage from './pages/ExamplePage';
 import NotFoundPage from './pages/NotFoundPage';
 import NavBar from './NavBar';
 import './App.css';
@@ -24,7 +25,8 @@ function App() {
             <Route path="/about" component={AboutPage} />
             <Route path="/articles-list" component={ArticlesListPage} />
             <Route path="/article/:name" component={ArticlePage} />
-            <Route path="/stocktwits/:symbol" component={MainPage} />
+            <Route path="/stocktwits" component={MainPage} />
+            <Route path="/example" component={ExamplePage} />
             <Route component={NotFoundPage} />
           </Switch>
         </div>

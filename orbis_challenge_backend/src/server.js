@@ -121,11 +121,12 @@ app.post('/api/stocktwits/:symbol/new-twits', async (req, res) => {
                     {"symbol": symbolName},
                     { $push: { twits: { $each: twitsList } } }
                 )
-                const newTwits = await db.collection('twits').findOne({"symbol": symbolName});
-                res.send(newTwits);
+                const existingTwits = await db.collection('twits').find({});
+                const allTwits = await existingTwits.toArray();
+                res.status(200).json(allTwits);
             } else {
-                const existingTwits = await db.collection('twits').findOne({"symbol": symbolName});
-                res.send(`$${symbolName} list of twits already exists with ${existingTwits.twits.length} twits.`);
+                const existingTwits = await db.collection('twits').find({});
+                res.send({message: "Already exists"});
             }
         }, res);
     } catch (error) {
@@ -135,11 +136,12 @@ app.post('/api/stocktwits/:symbol/new-twits', async (req, res) => {
 
 
 // retrieve existing twits from database
-app.get('/api/stocktwits/:symbol/get-twits', (req, res) => {
+app.get('/api/stocktwits/get-saved-twits', (req, res) => {
     const symbol = req.params.symbol;
     withDB(async (db) => {
         try {
-            const existingTwits = await db.collection('twits').findOne({"symbol": symbol});
+            const getCurrentTwits = await db.collection('twits').find({});
+            const existingTwits = await getCurrentTwits.toArray();
             res.status(200).json(existingTwits);
         } catch (error) {
             res.send(error);
@@ -157,7 +159,10 @@ app.post('/api/stocktwits/:symbol/delete', (req, res) => {
             const checkTwits = await db.collection('twits').findOne({"symbol": symbolName});
             if (checkTwits !== null) {
                 await db.collection('twits').remove({"symbol": symbolName});
-                res.send(`${symbolName} twits deleted.`);
+                const getCurrentTwits = await db.collection('twits').find({});
+                const existingTwits = await getCurrentTwits.toArray();
+                res.status(200).json(existingTwits);
+                // res.send(`${symbolName} twits deleted.`);
             } else {
                 res.send("No twits found.");
             }
@@ -233,7 +238,7 @@ app.post('/api/stocktwits/:symbol/delete', (req, res) => {
 //         console.log("Error from request")
 //         console.log(error);
 //     }
-// }, 10000);
+// }, 1000000);
 
 
 

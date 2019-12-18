@@ -1,24 +1,58 @@
-import React from 'react';
-// import { Link } from 'react-router-dom';
+import React, { Component } from 'react';
+// import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
+import { getTwits } from '../actions/searchActions';
+import { deleteSymbol } from '../actions/searchActions';
 
-const TwitsList = ({ twits }) => {
-    // console.log("Hello from twits list component");
-    // const symbol = "AAPL";
-    // const twits = fetch(`/api/stocktwits/${symbol}/get-twits`);
-    // const twitsList = twits.twits;
-    return (
-        <>
-        {twits.map((twit, key) => (
-            <div className="article-list-item" key={key}>
-                <h3>{twit.id}</h3>
-                <h3>{twit.username}</h3>
-                <h3>{twit.body}</h3>
-                <h3>{twit.stocktwits_timestamp}</h3>
+class TwitsList extends Component {
+    constructor(props) {
+        super(props);
+        this.state = {
+            toDelete: ''
+        }
+        this.onSubmit = this.onSubmit.bind(this);
+    }
+    componentWillMount() {
+        this.props.getTwits();
+        
+    }
+
+    onSubmit(e) {
+        e.preventDefault();
+
+        this.props.deleteSymbol(e.target.value);
+    }
+    render() {
+        const symbolList = this.props.search.map(symbol => (
+            <div key={symbol._id}>
+                <h3>{symbol.twits.length} {symbol.symbol} Twits</h3>
+                <button onClick={this.onSubmit} value={symbol.symbol}>delete</button>
+                {/* {symbol.twits.map(twit => (
+                    <div key={twit.id}>
+                        <h4>{twit.username}</h4>
+                        <h4>{twit.stocktwits_timestamp}</h4>
+                        <h4>{twit.body}</h4>
+                    </div>
+                    ))
+                } */}
             </div>
-        ))}
-        </>
-    )
-    
+        ))
+        return (
+            <>
+            <h1>Twits</h1>
+            {symbolList}
+            </>
+        );
+    }
 };
 
-export default TwitsList;
+// Search.propTypes = {
+//     getTwits: PropTypes.func.isRequired,
+//     search: PropTypes.array.isRequired
+// }
+
+const mapStateToProps = state => ({
+    search: state.search.symbols
+})
+
+export default connect(mapStateToProps, { getTwits, deleteSymbol })(TwitsList);

@@ -4,17 +4,18 @@ import TwitsList from '../components/TwitsList';
 import SearchForm from '../components/SearchForm';
 import Dropdown from '../components/Dropdown';
 import SearchSymbols from '../components/SearchSymbols';
+import TestDropdownTwits from '../components/TestDropdownTwits';
 // const latestTwits = fetch(`/api/stocktwits/AAPL/get-twits`);
 
-const MainPage = () => {
+const DropdownTestPage = () => {
 
     return (
         <>
             <SearchForm />
-            <TwitsList />
+            <TestDropdownTwits />
         </>
     )
 
 }
 
-export default MainPage;
+export default DropdownTestPage;

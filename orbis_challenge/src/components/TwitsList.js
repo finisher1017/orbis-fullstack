@@ -22,19 +22,24 @@ class TwitsList extends Component {
 
         this.props.deleteSymbol(e.target.value);
     }
+
+    expandTwits() {
+        document.getElementById("twits").classList.toggle("show");
+    }
     render() {
         const symbolList = this.props.search.map(symbol => (
             <div key={symbol._id}>
                 <h3>{symbol.twits.length} {symbol.symbol} Twits</h3>
+                <button>twits</button>
                 <button onClick={this.onSubmit} value={symbol.symbol}>delete</button>
-                {/* {symbol.twits.map(twit => (
-                    <div key={twit.id}>
+                {symbol.twits.map(twit => (
+                    <div id="twits" className="dropdown-content" key={twit.id}>
                         <h4>{twit.username}</h4>
                         <h4>{twit.stocktwits_timestamp}</h4>
                         <h4>{twit.body}</h4>
                     </div>
                     ))
-                } */}
+                }
             </div>
         ))
         return (

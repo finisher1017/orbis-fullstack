@@ -56,6 +56,16 @@ nav a:hover {
   padding-top: 64px;
 }
 
+.dropbtn:hover, .dropbtn:focus {
+  background-color: #2980B9;
+}
+
+.dropdown-content {
+  display: none;
+}
+
+.show {display:block;}
+
 .article-list-item {
   text-decoration: none;
   color: black;

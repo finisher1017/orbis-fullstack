@@ -8,12 +8,14 @@ class TestDropdownTwits extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            listOpen: false,
+            showList: false,
+            dropdownClass: 'dropdown-content',
             toShow: '',
-            toDelete: ''
+            toDelete: '',
+
         }
         this.onSubmit = this.onSubmit.bind(this);
-        this.toggleTwits = this.toggleTwits.bind(this);
+        this.toggleList = this.toggleList.bind(this);
     }
     componentWillMount() {
         this.props.getTwits();
@@ -26,17 +28,23 @@ class TestDropdownTwits extends Component {
         this.props.deleteSymbol(e.target.value);
     }
 
-    toggleTwits(e) {
-        e.preventDefault();
-        console.log(e.target.id);
-        if (this.state.listOpen && this.state.toShow !== e.target.id) {
-            this.setState({toShow: e.target.id})
+    toggleList(e) {
+        if (this.state.showList && this.state.toShow !== e.target.id) {
+            this.setState({showList: true, toShow: e.target.id});
         } else {
-            this.setState({
-                toShow: e.target.id,
-                listOpen: !this.state.listOpen
-            })
+            this.setState({showList: !this.state.showList, toShow: e.target.id})
         }
+        
+        // e.preventDefault();
+        // console.log(e.target.id);
+        // if (this.state.listOpen && this.state.toShow !== e.target.id) {
+        //     this.setState({toShow: e.target.id})
+        // } else {
+        //     this.setState({
+        //         toShow: e.target.id,
+        //         listOpen: !this.state.listOpen
+        //     })
+        // }
         
         // this.setState(prevState => ({
         //     toShow: e.target.id,
@@ -44,21 +52,35 @@ class TestDropdownTwits extends Component {
         // })) 
     }
     render() {
+        const {showList, toShow} = this.state;
+        console.log(`listOpen: ${showList}`);
+        console.log(`toShow: ${toShow}`);
         const symbolList = this.props.search.map(symbol => (
-            <section key={symbol._id} id={symbol.symbol} className="dd-wrapper">
-                <a href={"#" + symbol.symbol} className="dd-header" onClick={this.toggleTwits}>
-                    <div id={symbol._id}>{symbol.twits.length} {symbol.symbol} Twits - {symbol._id}</div>
-                </a>
-                {this.state.listOpen && this.state.toShow === symbol._id && <div className="dd-list">
-                    {symbol.twits.map((twit) => (
-                        // <li className="dd-list-item" key={twit.id}>{twit.username}</li>
-                        <div key={twit.id} classsName="dd-list-item">
-                            <h3>Posted by {twit.username} - {twit.stocktwits_timestamp}</h3>
+            <div key={symbol._id} className="dropdown">
+                <button id={symbol.symbol} onClick={this.toggleList} className="dropbtn">{symbol.twits.length} {symbol.symbol} Twits</button>
+                <div className={`${showList && toShow == symbol.symbol ? "" : "dropdown-content"}`}>
+                    {symbol.twits.map(twit => (
+                        <li key={twit.id}>
+                            <h3>Posted by {twit.username} on {twit.stocktwits_timestamp}</h3>
                             <p>{twit.body}</p>
-                        </div>
+                        </li>
                     ))}
-                    </div>}
-            </section>
+                </div>
+            </div>
+            // <section key={symbol._id} id={symbol.symbol} className="dd-wrapper">
+            //     <a href={"#" + symbol.symbol} className="dd-header" onClick={this.toggleTwits}>
+            //         <div id={symbol._id}>{symbol.twits.length} {symbol.symbol} Twits - {symbol._id}</div>
+            //     </a>
+            //     {this.state.listOpen && this.state.toShow === symbol._id && <ul className="dd-list">
+            //         {symbol.twits.map((twit) => (
+            //             // <li className="dd-list-item" key={twit.id}>{twit.username}</li>
+            //             <li key={twit.id} classsName="dd-list-item">
+            //                 <h3>Posted by {twit.username} - {twit.stocktwits_timestamp}</h3>
+            //                 <p>{twit.body}</p>
+            //             </li>
+            //         ))}
+            //         </ul>}
+            // </section>
             // <div key={symbol._id}>
             //     <h3>{symbol.twits.length} {symbol.symbol} Twits</h3>
             //     <button>twits</button>

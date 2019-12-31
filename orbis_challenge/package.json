@@ -12,6 +12,7 @@
     "react-scripts": "3.2.0",
     "redux": "^4.0.4",
     "redux-thunk": "^2.3.0",
+    "time-ago": "^0.2.1",
     "whatwg-fetch": "^3.0.0"
   },
   "scripts": {

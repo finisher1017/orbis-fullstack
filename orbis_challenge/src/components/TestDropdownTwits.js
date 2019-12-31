@@ -3,7 +3,10 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import { getTwits } from '../actions/searchActions';
 import { deleteSymbol } from '../actions/searchActions';
-
+const ta = require('time-ago');
+// @TODO
+// Convert function component
+// implement prop types
 class TestDropdownTwits extends Component {
     constructor(props) {
         super(props);
@@ -34,71 +37,35 @@ class TestDropdownTwits extends Component {
         } else {
             this.setState({showList: !this.state.showList, toShow: e.target.id})
         }
-        
-        // e.preventDefault();
-        // console.log(e.target.id);
-        // if (this.state.listOpen && this.state.toShow !== e.target.id) {
-        //     this.setState({toShow: e.target.id})
-        // } else {
-        //     this.setState({
-        //         toShow: e.target.id,
-        //         listOpen: !this.state.listOpen
-        //     })
-        // }
-        
-        // this.setState(prevState => ({
-        //     toShow: e.target.id,
-        //     listOpen: !prevState.listOpen
-        // })) 
     }
+
     render() {
         const {showList, toShow} = this.state;
-        console.log(`listOpen: ${showList}`);
-        console.log(`toShow: ${toShow}`);
         const symbolList = this.props.search.map(symbol => (
             <div key={symbol._id} className="dropdown">
-                <button id={symbol.symbol} onClick={this.toggleList} className="dropbtn">{symbol.twits.length} {symbol.symbol} Twits</button>
-                <div className={`${showList && toShow == symbol.symbol ? "" : "dropdown-content"}`}>
-                    {symbol.twits.map(twit => (
+                <button id={symbol.symbol} onClick={this.toggleList} className="twit-button dropbtn">{symbol.twits.length} most recent twits for {symbol.symbol}<button onClick={this.onSubmit} className="delete-button" value={symbol.symbol}>X</button></button>              
+                <div className={`${showList && toShow == symbol.symbol ? "dropdown-content" : "hidden-content"}`}>
+                    {symbol.twits.map(twit => {
+                        if (twit.username === 'Zann007') {
+                            console.log(twit.username);
+                            console.log(twit.body.split(''));
+                        }
+                        return (
                         <li key={twit.id}>
-                            <h3>Posted by {twit.username} on {twit.stocktwits_timestamp}</h3>
-                            <p>{twit.body}</p>
+                            <p class="user">{twit.username} - {ta.ago(`${twit.stocktwits_timestamp}`)}</p>
+                            <p class="post">{twit.body}</p>
                         </li>
-                    ))}
+                        )
+                    }
+                    )}
                 </div>
             </div>
-            // <section key={symbol._id} id={symbol.symbol} className="dd-wrapper">
-            //     <a href={"#" + symbol.symbol} className="dd-header" onClick={this.toggleTwits}>
-            //         <div id={symbol._id}>{symbol.twits.length} {symbol.symbol} Twits - {symbol._id}</div>
-            //     </a>
-            //     {this.state.listOpen && this.state.toShow === symbol._id && <ul className="dd-list">
-            //         {symbol.twits.map((twit) => (
-            //             // <li className="dd-list-item" key={twit.id}>{twit.username}</li>
-            //             <li key={twit.id} classsName="dd-list-item">
-            //                 <h3>Posted by {twit.username} - {twit.stocktwits_timestamp}</h3>
-            //                 <p>{twit.body}</p>
-            //             </li>
-            //         ))}
-            //         </ul>}
-            // </section>
-            // <div key={symbol._id}>
-            //     <h3>{symbol.twits.length} {symbol.symbol} Twits</h3>
-            //     <button>twits</button>
-            //     <button onClick={this.onSubmit} value={symbol.symbol}>delete</button>
-            //     {symbol.twits.map(twit => (
-            //         <div id="twits" className="dropdown-content" key={twit.id}>
-            //             <h4>{twit.username}</h4>
-            //             <h4>{twit.stocktwits_timestamp}</h4>
-            //             <h4>{twit.body}</h4>
-            //         </div>
-            //         ))
-            //     }
-            // </div>
         ));
         return (
             <>
-            <h1>Dropdown Test Twits</h1>
-            {symbolList}
+            <div className="test-class">
+                {symbolList}
+            </div>
             </>
         );
     }

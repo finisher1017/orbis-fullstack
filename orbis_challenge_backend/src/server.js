@@ -15,8 +15,6 @@ app.use(bodyParser.json());
 
 const withDB = async (operations, res) => {
     try {
-        // const client = await MongoClient.connect('mongodb://localhost:27017', { useNewUrlParser: true, useUnifiedTopology: true });
-        // const client = await MongoClient.connect('mongodb+srv://magajon:L9NGYWGuNIJB7xfm@cluster0-2onta.mongodb.net/test?retryWrites=true&w=majority', { useNewUrlParser: true, useUnifiedTopology: true });
         const client = await MongoClient.connect(config.dbConnect, { useNewUrlParser: true, useUnifiedTopology: true });
         const db = client.db('orbis-fullstack');
 
@@ -246,4 +244,6 @@ app.post('/api/stocktwits/:symbol/delete', (req, res) => {
 //     res.sendFile(path.join(__dirname + '/build/index.html'));
 // });
 
-app.listen(8000, () => console.log("Listening on port 8000"));
+
+const PORT = process.env.PORT || 8000;
+app.listen(PORT, () => console.log(`Listening on port ${PORT}`));

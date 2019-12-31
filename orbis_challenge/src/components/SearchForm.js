@@ -30,11 +30,14 @@ class SearchForm extends Component {
     render() {
         return (
         <>
-        <h1>Search Symbols</h1>
-        <form onSubmit={this.onSubmit}>
-            <input type="text" name="searchQuery" onChange={this.onChange} value={this.state.searchQuery} />
-            <button type="submit">Search</button>
-        </form>
+        <div className="search-box">
+            <div className="search-form">
+                <form onSubmit={this.onSubmit}>
+                    <input type="text" name="searchQuery" onChange={this.onChange} value={this.state.searchQuery} />
+                    <button type="submit">Search</button>
+                </form>
+            </div>
+        </div>
         </>
     )
     

@@ -3,13 +3,34 @@ body {
   font-size: 18px;
 }
 
-button {
+#page-body {
+  /* display: grid;
+  grid-template-rows: 4em 1fr; */
+  max-width: 60em;
+  margin: 0 auto;
+}
+
+.twit-button {
+  width: 100%;
   padding: 16px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-size: 16px;
   background-color: black;
   color: white;
-  border-radius: 8px;
+  border-radius: 40px;
+  cursor: pointer;
+}
+
+.delete-button {
+  /* padding: 16px; */
+  float: right;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 1em;
+  background-color: black;
+  color: red;
+  padding: 0;
+  border: none;
+  /* border-radius: 8px; */
   cursor: pointer;
 }
 
@@ -56,12 +77,85 @@ nav a:hover {
   padding-top: 64px;
 }
 
+.search-box {
+  width: 100%;
+  height: 4em;
+  background: black;
+}
+
+/* .search-area {
+  width: 70%;
+  height: 3em;
+} */
+
+.search-form {
+  position: relative;
+  /* background-color: red; */
+  width: 50%;
+  height: 50%;
+  text-align: center;
+  margin: 0 auto;
+  top: 25%;
+}
+
+.test-class {
+  grid-row: 2/3;
+  text-align: center;
+  margin-top: 1em;
+}
+
+.dropdown {
+  width: 70%;
+  margin: 0 auto;
+  /* display: grid;
+  grid-template-rows: 1em 1fr; */
+  /* width: 70%;
+  margin: 0 auto; */
+}
+
 .dropbtn:hover, .dropbtn:focus {
   background-color: #2980B9;
 }
 
-.dropdown-content {
+.hidden-content {
   display: none;
+}
+
+.dropdown-content {
+  width: 90%;
+  margin: 0 auto;
+  /* display: grid;
+  grid-template-rows: 1em 1fr; */
+  /* width: 50%;
+  margin: 0 auto; */
+  margin-bottom: 1em;
+}
+
+.dropdown-content li {
+  list-style-type: none;
+  width: 90%;
+  /* margin-top: 1em; */
+}
+
+.dropdown-content li p.user {
+  width: 100%;
+  color: red;
+  float: left;
+  text-align: left;
+  /* margin-left: 2em;
+  margin-top: 2em; */
+  top: 10%;
+  padding: 0;
+  margin-top: 1em;
+}
+
+.dropdown-content li p.post {
+  color: blue;
+  float: left;
+  margin-left: 1em;
+  padding: 0;
+  margin: 0;
+  text-align: justify;
 }
 
 .show {display:block;}

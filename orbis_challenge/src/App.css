@@ -19,6 +19,7 @@ body {
   color: white;
   border-radius: 40px;
   cursor: pointer;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);
 }
 
 .delete-button {
@@ -32,6 +33,10 @@ body {
   border: none;
   /* border-radius: 8px; */
   cursor: pointer;
+}
+
+hr {
+  padding: 10px;
 }
 
 h3, h4 {
@@ -147,15 +152,18 @@ nav a:hover {
   top: 10%;
   padding: 0;
   margin-top: 1em;
+  overflow-wrap: break-word;
 }
 
 .dropdown-content li p.post {
+  width: 100%;
   color: blue;
   float: left;
   margin-left: 1em;
   padding: 0;
   margin: 0;
   text-align: justify;
+  overflow-wrap: break-word;
 }
 
 .show {display:block;}

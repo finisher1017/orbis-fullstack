@@ -21,7 +21,7 @@ class SearchForm extends Component {
 
     onSubmit(e) {
         e.preventDefault();
-        const symbols = this.state.searchQuery;
+        const symbols = this.state.searchQuery.toUpperCase();
 
         this.props.addSymbols(symbols);
         

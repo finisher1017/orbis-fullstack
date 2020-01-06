@@ -103,7 +103,7 @@ app.post('/api/stocktwits/:symbol/new-twits', async (req, res) => {
         withDB(async (db) => {
             const checkTwits = await db.collection('twits').findOne({"symbol": symbolName});
             if (checkTwits === null) {
-                await db.collection('twits').insertOne({"symbol": symbolName, "twits": []});
+                await db.collection('twits').insertOne({"symbol": symbolName, "timestamp": new Date().getTime(), "twits": []});
                 let twitsList = [];
                 twits.forEach(async (twit) => {
                     const twitData = {
@@ -115,11 +115,12 @@ app.post('/api/stocktwits/:symbol/new-twits', async (req, res) => {
                     }
                     twitsList.push(twitData);
                 })
+                twitsList = twitsList.sort();
                 await db.collection('twits').updateOne(
                     {"symbol": symbolName},
                     { $push: { twits: { $each: twitsList } } }
                 )
-                const existingTwits = await db.collection('twits').find({});
+                const existingTwits = await db.collection('twits').find({}).sort({timestamp: -1});
                 const allTwits = await existingTwits.toArray();
                 res.status(200).json(allTwits);
             } else {
@@ -138,9 +139,25 @@ app.get('/api/stocktwits/get-saved-twits', (req, res) => {
     const symbol = req.params.symbol;
     withDB(async (db) => {
         try {
-            const getCurrentTwits = await db.collection('twits').find({});
+            const getCurrentTwits = await db.collection('twits').find({}).sort({timestamp: -1});
             const existingTwits = await getCurrentTwits.toArray();
             res.status(200).json(existingTwits);
+        } catch (error) {
+            res.send(error);
+        }
+    }, res);
+});
+
+// return list of symbols in the database
+app.get('/api/stocktwits/list-symbols', (req, res) => {
+    // const symbol = req.params.symbol;
+    const symbolList = [];
+    withDB(async (db) => {
+        try {
+            const getCurrentTwits = await db.collection('twits').find({});
+            const existingTwits = await getCurrentTwits.toArray();
+            existingTwits.forEach(s => symbolList.push(s.symbol));
+            res.status(200).json(symbolList);
         } catch (error) {
             res.send(error);
         }
@@ -170,64 +187,144 @@ app.post('/api/stocktwits/:symbol/delete', (req, res) => {
     }
 });
 
-// var timerID = setInterval(async () => {
-//     const symbol = "AAPL";
 
-//     const newTwits = await axios.get(`https://api.stocktwits.com/api/2/streams/symbol/${symbol}.json`);
-//     const newResponse = newTwits.data.messages;
-//     const newTwitsIds = newResponse.map(twit => twit = twit.id);
+// app.post('/api/test-updates', async (req, res) => {
+var timerID = setInterval(async () => {
+    try {
+        dbWithoutres(async (db) => {
+            const symbols = ["AAPL","EA","PEP","CVX"];
+            for (let i = 0; i <= symbols.length - 1; i++) {
+                let symbol = symbols[i];
+                const newResults = await axios.get(`https://api.stocktwits.com/api/2/streams/symbol/${symbol}.json`);
+                const newTwits = newResults.data.messages;
+                const currentResults = await db.collection('twits').findOne({"symbol": symbol});
+                const currentTwits = currentResults.twits;
+                const newTwitsIdsList = newTwits.map(twit => twit.id);
+                const currentTwitsIdsList = currentTwits.map(twit => twit.id);
+                let twitsToAdd = [];
+                for (var t = 0; t <= newTwitsIdsList.length - 1; t++) {
+                        if (currentTwitsIdsList.includes(newTwitsIdsList[t])) {
+                            console.log(`${t}. ${newTwitsIdsList[t]} Included`);
+                            break;
+                        } else {
+                            console.log(`${t}. ${newTwitsIdsList[t]} not included`);
+                            twitsToAdd.push(api_methods.convertOneTwit(newTwits[t]));
+                        }
+                }
+                console.log(`#####${twitsToAdd.length} ${symbol} Twits to add#####`)
+                await db.collection('twits').updateOne(
+                    {"symbol": symbol},
+                    { $push: { twits: { $each: twitsToAdd } } }
+                )
+                
+            }
+            console.log("Updates completed?");
+
+
+
+
+            // const newResults = await axios.get(`https://api.stocktwits.com/api/2/streams/symbol/${symbol}.json`);
+            // const currentResults = await db.collection('twits').findOne({"symbol": symbol});
+            // const newTwits = newResults.data.messages;
+            // const currentTwits = currentResults.twits;
+            // const newTwitsIdsList = newTwits.map(twit => twit.id);
+            // const currentTwitsIdsList = currentTwits.map(twit => twit.id);
+            // let twitsToAdd = [];
+            // console.log("###New Twits Ids###");
+            // console.log(newTwitsIdsList);
+            // console.log("###Current Twits Ids###");
+            // console.log(currentTwitsIdsList);
+            // for (var i = 0; i <= newTwitsIdsList.length - 1; i++) {
+            //     if (currentTwitsIdsList.includes(newTwitsIdsList[i])) {
+            //         console.log(`${i}. ${newTwitsIdsList[i]} Included`);
+            //         break;
+            //     } else {
+            //         console.log(`${i}. ${newTwitsIdsList[i]} not included`);
+            //         twitsToAdd.push(api_methods.convertOneTwit(newTwits[i]));
+            //     }
+            // }
+            // await db.collection('twits').updateOne(
+            //     {"symbol": symbol},
+            //     { $push: { twits: { $each: twitsToAdd } } }
+            // )
+
+            // let updatedTwits = await db.collection('twits').findOne({"symbol": symbol});
+            // res.status(200).json(updatedTwits.twits);
+        });
+    } catch (error) {
+        console.log(error);
+    }
+}, 600000); 
+// })
+
+// var timerID = setInterval(async () => {
+
+    
 
 //     try {
 //         dbWithoutres(async (db) => {
-//             const results = await db.collection('twits').findOne({"symbol": symbol});
-//             const twitsList = results.twits.map(twit => twit = twit.id);
-//             const twitsToAdd = [];
-//             for (var i = 0; i <= newTwitsIds.length; i++) {
-//                 console.log(`Checking ${newTwitsIds[i]}`);
-//                 if (twitsList.includes(newTwitsIds[i])) {
-//                     console.log(`${newTwitsIds[i]} is in the database`);
-//                     break;
-//                 } else {
-//                     console.log(`Adding ${newTwitsIds[i]} to the database`);
-//                     newResponse.forEach((t) => {
-//                         if (t.id === newTwitsIds[i]) {
-//                             twitsToAdd.push(api_methods.convertOneTwit(t));
-//                         }
-//                     });
-//                 }
-//                 console.log("##################################");
-//             };
-//             console.log(`${twitsList.length} found in database.`);
-//             console.log(`${twitsToAdd.length} twits to add.`);
-//             await db.collection('twits').updateOne(
-//                 {"symbol": symbol},
-//                 { $push: { twits: { $each: twitsToAdd } } }
-//             )
-//             const updatedTwits = await db.collection('twits').findOne({"symbol": symbol});
-//             const updatedTwitsList = updatedTwits.twits.map(twit => twit = twit.id);
-//             var sortedUpdatedTwitsList = updatedTwitsList.sort();
-//             console.log(`${sortedUpdatedTwitsList.length} twits now in database`);
-//             const newTwitsToAddList = [];
-//             if (sortedUpdatedTwitsList.length > 40) {
-//                 console.log((sortedUpdatedTwitsList.length - 40) + " to delete");
-//                 const remainingTwits = sortedUpdatedTwitsList.slice(sortedUpdatedTwitsList.length - 40);
-//                 console.log(updatedTwits.twits.length);
-//                 updatedTwits.twits.forEach((t) => {
-//                     if (remainingTwits.includes(t.id)) {
-//                         newTwitsToAddList.push(t);
-//                     }
-//                 })
+//             const symbolList = [];
+//             const getCurrentTwits = await db.collection('twits').find({});
+//             const existingTwits = await getCurrentTwits.toArray();
+//             existingTwits.forEach(s => symbolList.push(s.symbol));
+//             symbolList.forEach(async (symbol) => {
+//                 const newTwits = await axios.get(`https://api.stocktwits.com/api/2/streams/symbol/${symbol}.json`);
+//                 const newResponse = newTwits.data.messages;
                 
-//                 console.log(newTwitsToAddList.length + " in new list");
+//                 const newTwitsIds = newResponse.map(twit => twit = twit.id);
+//                 const results = await db.collection('twits').findOne({"symbol": symbol});
+//                 console.log(results.cursor)
+//                 const twitsList = results.cursor.toArray.twits.map(twit => twit = twit.id);
+//                 console.log(twitsList)
+//                 const twitsToAdd = [];
+//                 for (var i = 0; i <= newTwitsIds.length; i++) {
+//                     console.log(`Checking ${newTwitsIds[i]}`);
+//                     if (twitsList.includes(newTwitsIds[i])) {
+//                         console.log(`${newTwitsIds[i]} is in the database`);
+//                         break;
+//                     } else {
+//                         console.log(`Adding ${newTwitsIds[i]} to the database`);
+//                         newResponse.forEach((t) => {
+//                             if (t.id === newTwitsIds[i]) {
+//                                 twitsToAdd.push(api_methods.convertOneTwit(t));
+//                             }
+//                         });
+//                     }
+//                     console.log("##################################");
+//                 };
+//                 console.log(`${twitsList.length} found in database.`);
+//                 console.log(`${twitsToAdd.length} twits to add.`);
 //                 await db.collection('twits').updateOne(
 //                     {"symbol": symbol},
-//                     { $set: {"twits": []}}
+//                     { $push: { twits: { $each: twitsToAdd } } }
 //                 )
-//                 await db.collection('twits').updateOne(
-//                     {"symbol": symbol},
-//                     { $push: { twits: { $each: newTwitsToAddList } } }
-//                 )
-//             }
+//                 const updatedTwits = await db.collection('twits').findOne({"symbol": symbol});
+//                 const updatedTwitsList = updatedTwits.twits.map(twit => twit = twit.id);
+//                 var sortedUpdatedTwitsList = updatedTwitsList.sort();
+//                 console.log(`${sortedUpdatedTwitsList.length} twits now in database`);
+//                 const newTwitsToAddList = [];
+//                 if (sortedUpdatedTwitsList.length > 40) {
+//                     console.log((sortedUpdatedTwitsList.length - 40) + " to delete");
+//                     const remainingTwits = sortedUpdatedTwitsList.slice(sortedUpdatedTwitsList.length - 40);
+//                     console.log(updatedTwits.twits.length);
+//                     updatedTwits.twits.forEach((t) => {
+//                         if (remainingTwits.includes(t.id)) {
+//                             newTwitsToAddList.push(t);
+//                         }
+//                     })
+                    
+//                     console.log(newTwitsToAddList.length + " in new list");
+//                     await db.collection('twits').updateOne(
+//                         {"symbol": symbol},
+//                         { $set: {"twits": []}}
+//                     )
+//                     await db.collection('twits').updateOne(
+//                         {"symbol": symbol},
+//                         { $push: { twits: { $each: newTwitsToAddList } } }
+//                     )
+//                 }
+//             })
+            
             
             
             
@@ -236,7 +333,7 @@ app.post('/api/stocktwits/:symbol/delete', (req, res) => {
 //         console.log("Error from request")
 //         console.log(error);
 //     }
-// }, 1000000);
+// }, 30000);
 
 
 

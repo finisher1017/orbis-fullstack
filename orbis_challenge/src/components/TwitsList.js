@@ -37,6 +37,7 @@ class TwitsList extends Component {
                         <h4>{twit.username}</h4>
                         <h4>{twit.stocktwits_timestamp}</h4>
                         <h4>{twit.body}</h4>
+                        <hr/>
                     </div>
                     ))
                 }

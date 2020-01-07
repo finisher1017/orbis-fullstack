@@ -58,11 +58,13 @@ class TestDropdownTwits extends Component {
             <div key={symbol._id} className="dropdown">
                 <button id={symbol.symbol} onClick={this.toggleList} className="twit-button dropbtn">{symbol.twits.length} most recent twits for {symbol.symbol}<button onClick={this.onSubmit} className="delete-button" value={symbol.symbol}>X</button></button>              
                 <div className={`${showList && toShow == symbol.symbol ? "dropdown-content" : "hidden-content"}`}>
+                    <p></p>
                     {symbol.twits.sort(function (a,b) {return b.id - a.id}).map(twit => {
                         return (
                         <li key={twit.id}>
                             <p className="user">{twit.username} - {ta.ago(`${twit.stocktwits_timestamp}`)}</p>
                             <p className="post">{twit.body}</p>
+                            <p></p>
                             <hr></hr>
                         </li>
                         )

@@ -19,7 +19,6 @@ function App() {
   return (
     <Router>
       <div className="App">
-        <NavBar />
         <div id="page-body">
           <Switch>
             <Route path="/" component={HomePage} exact />

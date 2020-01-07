@@ -1,4 +1,4 @@
-import { SEARCH_SYMBOLS, ADD_SYMBOLS , DELETE_SYMBOL } from './types';
+import { SEARCH_SYMBOLS, ADD_SYMBOLS , DELETE_SYMBOL, LIST_SYMBOLS } from './types';
 
 export const getTwits = () => dispatch => {
     fetch('/api/stocktwits/get-saved-twits')
@@ -8,6 +8,16 @@ export const getTwits = () => dispatch => {
         payload: symbols
     }));
 };
+
+// export const getTwitsList = () => dispatch => {
+//     console.log("get twits action");
+//     fetch('/api/stocktwits/list-symbols')
+//     .then(res => res.json())
+//     .then(list => dispatch({
+//         type: LIST_SYMBOLS,
+//         payload: list
+//     }))
+// };
 
 export const addSymbols = symbols => dispatch => {
     console.log("addsymbols action");

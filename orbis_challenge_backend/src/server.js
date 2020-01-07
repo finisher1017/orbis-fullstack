@@ -96,7 +96,6 @@ app.post('/api/articles/:name/add-comment', (req, res) => {
 app.post('/api/stocktwits/:symbol/new-twits', async (req, res) => {
     const { symbol } = req.body;
     const symbolName = req.params.symbol;
-
     try {
         const response = await axios.get(`https://api.stocktwits.com/api/2/streams/symbol/${symbolName}.json`);
         const twits = response.data.messages;
@@ -124,8 +123,10 @@ app.post('/api/stocktwits/:symbol/new-twits', async (req, res) => {
                 const allTwits = await existingTwits.toArray();
                 res.status(200).json(allTwits);
             } else {
-                const existingTwits = await db.collection('twits').find({});
-                res.send({message: "Already exists"});
+                console.log("this far");
+                const existingTwits = await db.collection('twits').find({}).sort({timestamp: -1});
+                const allTwits = await existingTwits.toArray();
+                res.send(allTwits);
             }
         }, res);
     } catch (error) {
@@ -152,13 +153,15 @@ app.get('/api/stocktwits/get-saved-twits', (req, res) => {
 app.get('/api/stocktwits/list-symbols', (req, res) => {
     // const symbol = req.params.symbol;
     const symbolList = [];
+    console.log("kicked off")
     withDB(async (db) => {
         try {
-            const getCurrentTwits = await db.collection('twits').find({});
+            const getCurrentTwits = await db.collection('twits').find({}).sort({timestamp: -1});
             const existingTwits = await getCurrentTwits.toArray();
             existingTwits.forEach(s => symbolList.push(s.symbol));
             res.status(200).json(symbolList);
         } catch (error) {
+            console.log("something went wrong");
             res.send(error);
         }
     }, res);
@@ -192,7 +195,9 @@ app.post('/api/stocktwits/:symbol/delete', (req, res) => {
 var timerID = setInterval(async () => {
     try {
         dbWithoutres(async (db) => {
-            const symbols = ["AAPL","EA","PEP","CVX"];
+            let symbols = await db.collection('twits').find({});
+            symbols = await symbols.toArray();
+            symbols = symbols.map(symbol => symbol.symbol);
             for (let i = 0; i <= symbols.length - 1; i++) {
                 let symbol = symbols[i];
                 const newResults = await axios.get(`https://api.stocktwits.com/api/2/streams/symbol/${symbol}.json`);
@@ -254,7 +259,7 @@ var timerID = setInterval(async () => {
     } catch (error) {
         console.log(error);
     }
-}, 600000); 
+}, 300000); 
 // })
 
 // var timerID = setInterval(async () => {

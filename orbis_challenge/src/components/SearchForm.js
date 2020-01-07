@@ -8,11 +8,16 @@ class SearchForm extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            searchQuery: ''
+            searchQuery: '',
+            currentSymbolsList: []
         }
 
         this.onChange = this.onChange.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
+    }
+
+    componentWillMount() {
+        // this.props.getTwitsList();
     }
 
     onChange(e) {
@@ -21,13 +26,15 @@ class SearchForm extends Component {
 
     onSubmit(e) {
         e.preventDefault();
-        const symbols = this.state.searchQuery.toUpperCase();
-
-        this.props.addSymbols(symbols);
-        
+        const symbols = this.state.searchQuery.split(',').map(s => s.toUpperCase().trim());
+        symbols.forEach(symbol => {
+            this.props.addSymbols(symbol);
+        })
+        this.setState({searchQuery: ''});
     }
 
     render() {
+        console.log(this.props.list);
         return (
         <>
         <div className="search-box">
@@ -43,5 +50,9 @@ class SearchForm extends Component {
     
     }
 };
+
+const mapStateToProps = state => ({
+    list: state.search.list
+})
 
 export default connect(null, { addSymbols })(SearchForm);
